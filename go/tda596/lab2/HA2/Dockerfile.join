@@ -1,0 +1,37 @@
+# Using instructions for golang image from dockerhub:
+# https://hub.docker.com/_/golang (14.11.2022)
+# Heading is: "Start a Go instance in your app"
+# Might have minor changes
+
+# Using official golang image based on debian
+FROM golang:1.19
+
+# Port number to be used when serving, with a default value of 8080 which can be changed by docker run -e PORT=.... ....
+ENV ADDRESS=127.0.0.1
+ENV SSH_PORT=9082
+ENV TIME_STABILIZE=25000
+ENV TIME_FIX_FINGERS=10000
+ENV TIME_CHECK_PREDECESSOR=30000
+ENV TIME_BACKUP=60000
+ENV SUCCESSOR_LIST_SIZE=4
+ENV JOIN_ADDRESS=127.0.0.1
+ENV JOIN_PORT=8080
+ENV PORT=8082
+EXPOSE ${PORT}
+
+# Updating debian's packages, as sudo does not exist in image, it is not needed
+RUN apt update -y
+
+# Changing the base directory for the comming commands
+WORKDIR /usr/src/app
+
+# Copying over module file and checksum file and dowloading all necessarry 
+COPY go.mod go.sum  ./
+RUN go mod download  && go mod verify
+
+# If download is successfull then one can start building.
+# By building one into the /usr/local/bin diectory it the program is in the path variable
+# and can therefore be directly referenced
+COPY . .
+RUN go build -o /usr/local/bin/app .
+ENTRYPOINT app -a "${ADDRESS}" -p "${PORT}" -sp "${SSH_PORT}" --ja "${JOIN_ADDRESS}" --jp "${JOIN_PORT}" --ts "${TIME_STABILIZE}" --tff "${TIME_FIX_FINGERS}" --tcp "${TIME_CHECK_PREDECESSOR}" --tb "${TIME_BACKUP}" -r "${SUCCESSOR_LIST_SIZE}"

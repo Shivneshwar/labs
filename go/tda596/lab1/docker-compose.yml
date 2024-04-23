@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  http_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+  proxy:
+    build:
+      context: proxy/
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVER_URL=http_server:8080

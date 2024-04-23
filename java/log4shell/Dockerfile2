@@ -1,0 +1,12 @@
+FROM rappdw/docker-java-python:openjdk1.8.0_171-python3.6.6
+
+ADD netcat-traditional_1.10-41.1_amd64.deb /usr/share
+RUN dpkg -i /usr/share/netcat-traditional_1.10-41.1_amd64.deb
+ADD start_ldap.sh /usr/share
+ADD Exploit.java /usr/share
+ADD target/marshalsec-0.0.3-SNAPSHOT-all.jar /usr/share
+WORKDIR /usr/share
+RUN ["chmod", "+x", "start_ldap.sh"]
+RUN javac Exploit.java -source 8 -target 8
+CMD ./start_ldap.sh
+
